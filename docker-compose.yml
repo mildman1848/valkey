@@ -1,0 +1,15 @@
+services:
+  valkey:
+    image: ${IMAGE_REF:-ghcr.io/mildman1848/valkey:9.0.4-mldm1}
+    container_name: ${CONTAINER_NAME:-valkey-dev}
+    environment:
+      PUID: ${PUID:-1000}
+      PGID: ${PGID:-1000}
+      TZ: ${TZ:-Europe/Berlin}
+      FILE__VALKEY_PASSWORD: /run/secrets/valkey_password
+    volumes:
+      - ./config:/config
+      - ./secrets/valkey_password.txt:/run/secrets/valkey_password:ro
+    ports:
+      - "6379:6379"
+    restart: unless-stopped

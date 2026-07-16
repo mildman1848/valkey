@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+for env_file_var in $(env | awk -F= '/^FILE__/ {print $1}'); do
+  target_var="${env_file_var#FILE__}"
+  file_path="${!env_file_var}"
+  if [[ -z "${file_path}" ]]; then
+    echo "ERROR: ${env_file_var} is empty" >&2
+    exit 2
+  fi
+  if [[ ! -r "${file_path}" ]]; then
+    echo "ERROR: ${env_file_var} points to unreadable file" >&2
+    exit 2
+  fi
+  export "${target_var}=$(<"${file_path}")"
+done

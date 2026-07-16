@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+. /usr/local/bin/file-env
+
+if [[ -n "${VALKEY_PASSWORD:-}" ]]; then
+  exec valkey-cli -h 127.0.0.1 -p 6379 -a "${VALKEY_PASSWORD}" --no-auth-warning ping
+fi
+
+exec valkey-cli -h 127.0.0.1 -p 6379 ping

@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+. /usr/local/bin/file-env
+
+config_file="${VALKEY_CONFIG:-/config/valkey.conf}"
+auth_file="/config/valkey-auth.conf"
+password="${VALKEY_PASSWORD:-}"
+
+mkdir -p /config
+
+if [[ ! -f "${config_file}" ]]; then
+  cp /defaults/valkey.conf "${config_file}"
+fi
+
+# Ensure the generated auth include is present in user-modifiable config.
+if ! grep -Eq '^[[:space:]]*include[[:space:]]+/config/valkey-auth\.conf([[:space:]]*)$' "${config_file}"; then
+  printf '\ninclude /config/valkey-auth.conf\n' >> "${config_file}"
+fi
+
+if [[ -n "${password}" ]]; then
+  umask 077
+  {
+    printf '# Generated at container start. Do not commit.\n'
+    printf 'requirepass %s\n' "${password}"
+  } > "${auth_file}"
+else
+  : > "${auth_file}"
+fi
+chmod 600 "${auth_file}"
+
+chown -R abc:abc /config
+
+exec s6-setuidgid abc valkey-server "${config_file}"
